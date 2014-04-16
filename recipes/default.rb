@@ -4,6 +4,7 @@ Erubis::Context.send(:include, Extensions::Templates)
 
 elasticsearch = "elasticsearch-#{node.elasticsearch[:version]}"
 
+
 include_recipe "elasticsearch::curl"
 include_recipe "ark"
 
@@ -79,6 +80,13 @@ end
 ark_prefix_root = node.elasticsearch[:dir] || node.ark[:prefix_root]
 ark_prefix_home = node.elasticsearch[:dir] || node.ark[:prefix_home]
 
+
+# Recompute this attributes to allow other recipes to override without too much cruft
+node.default[:elasticsearch][:filename]         = "elasticsearch-#{node.elasticsearch[:version]}.tar.gz"
+node.default[:elasticsearch][:download_url]  = [node.elasticsearch[:host], node.elasticsearch[:repository], node.elasticsearch[:filename]].join('/')
+
+Chef::Log.info "Elasticsearch download_url #{node.elasticsearch[:download_url]}"
+
 ark "elasticsearch" do
   url   node.elasticsearch[:download_url]
   owner node.elasticsearch[:user]
@@ -99,6 +107,7 @@ ark "elasticsearch" do
 
     ::File.directory?(link) && ::File.symlink?(link) && ::File.readlink(link) == target && ::File.exists?(binary)
   end
+
 end
 
 # Increase open file and memory limits
